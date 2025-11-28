@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trading Station — Dashboard</title>
+<link rel="stylesheet" href="styles_clean.css">
+<style>
+/* small additions for dashboard */
+.container { max-width:1100px; padding:18px; }
+.grid { display:grid; grid-template-columns: 1fr; gap:12px; }
+@media(min-width:900px){ .grid{ grid-template-columns: 1fr 1fr; } }
+.card{ background:#07101a; border:1px solid rgba(0,212,255,0.08); padding:12px; border-radius:8px; }
+.header-row{ display:flex; gap:12px; align-items:center; justify-content:space-between; }
+.watchlist{ display:flex; gap:8px; flex-wrap:wrap; }
+.watch-item{ padding:6px 10px; background:#041018; border-radius:6px; cursor:pointer; border:1px solid rgba(0,200,255,0.06); }
+#charts { height: 520px; overflow:auto; }
+#alertsLog{ max-height:120px; overflow:auto; font-size:13px; color:#9fb; }
+.buttons { display:flex; gap:8px; align-items:center; }
+.small { font-size:14px; opacity:0.9; }
+.tabbar{display:flex;gap:8px;margin-top:8px;}
+.tab{padding:8px 12px;background:#021014;border-radius:6px;border:1px solid rgba(0,200,255,0.04);cursor:pointer}
+.active{outline:2px solid rgba(0,200,255,0.08)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="header-row">
+      <div>
+        <h1 style="margin:0;color:#0fd4ff">Trading Station</h1>
+        <div class="small">Multi-chart dashboard · Auto indicators · Watchlist · Journal · Alerts</div>
+      </div>
+      <div class="buttons">
+        <div class="small">Risk %</div>
+        <input id="riskPercent" type="number" value="1" style="width:72px;padding:6px;border-radius:6px;background:#001016;color:#fff;border:1px solid rgba(0,200,255,0.06)">
+        <button id="sizeCalcBtn" class="tab">Size calc</button>
+        <a href="journal.html" class="tab">Journal</a>
+      </div>
+    </div>
+
+    <div class="tabbar" style="margin-top:12px">
+      <div class="tab active" id="tabCharts">Charts</div>
+      <div class="tab" id="tabTools">Tools</div>
+    </div>
+
+    <div id="ChartsPane">
+      <div style="margin:12px 0" class="watchlist">
+        <!-- default watchlist -->
+        <div class="watch-item" data-symbol="BINANCE:BTCUSDT">BTCUSDT</div>
+        <div class="watch-item" data-symbol="BINANCE:ETHUSDT">ETHUSDT</div>
+        <div class="watch-item" data-symbol="BINANCE:ORCAUSDT">ORCA</div>
+        <div class="watch-item" data-symbol="BINANCE:SUPERUSDT">SUPER</div>
+        <div class="watch-item" data-symbol="BINANCE:PEPEUSDT">PEPE</div>
+        <input id="addSym" placeholder="Add symbol like BINANCE:ABCUSDT" style="padding:6px;border-radius:6px;background:#001016;color:#fff;border:1px solid rgba(0,200,255,0.06);min-width:220px">
+        <button id="addBtn" class="tab">Add</button>
+      </div>
+
+      <div class="grid" id="charts">
+        <!-- 4 chart containers -->
+        <div class="card" id="chart1"><div id="tv1" style="height:400px"></div></div>
+        <div class="card" id="chart2"><div id="tv2" style="height:400px"></div></div>
+        <div class="card" id="chart3"><div id="tv3" style="height:400px"></div></div>
+        <div class="card" id="chart4"><div id="tv4" style="height:400px"></div></div>
+      </div>
+    </div>
+
+    <div id="ToolsPane" style="display:none">
+      <div style="margin-top:12px" class="card">
+        <h3>Position Sizing Calculator</h3>
+        <div>Account balance (USD): <input id="acct" type="number" value="1000" style="width:120px"></div>
+        <div>Entry price: <input id="entry" type="number" value="0"></div>
+        <div>Stop price: <input id="stop" type="number" value="0"></div>
+        <div><button id="calc">Calculate size</button> <span id="posResult"></span></div>
+        <hr>
+        <h3>Alerts</h3>
+        <div>Alert on symbol: <input id="alertSym" value="BTCUSDT" style="width:120px"> Condition: <select id="cond"><option value="crossAbove">Price > EMA9</option><option value="crossBelow">Price &lt; EMA9</option><option value="volumeSpike">Volume spike</option></select>
+        <button id="addAlert" class="tab">Add Alert</button></div>
+        <div id="alertsLog"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script>
+// ---- helper: create TradingView widget
+function createWidget(containerId, symbol, interval='1') {
+  return new TradingView.widget({
+    "container_id": containerId,
+    "autosize": true,
+    "symbol": symbol,
+    "interval": interval,
+    "timezone": "Asia/Kolkata",
+    "theme": "dark",
+    "style": "1",
+    "toolbar_bg": "#07101a",
+    "allow_symbol_change": true,
+    "details": true,
+    "hotlist": true
+  });
+}
+
+// create four charts
+const w1 = createWidget('tv1','BINANCE:BTCUSDT');
+const w2 = createWidget('tv2','BINANCE:ETHUSDT');
+const w3 = createWidget('tv3','BINANCE:ORCAUSDT');
+const w4 = createWidget('tv4','BINANCE:SUPERUSDT');
+
+// watchlist click
+document.querySelectorAll('.watch-item').forEach(el=>{
+  el.addEventListener('click',e=>{
+    const sym = e.currentTarget.dataset.symbol;
+    // load into first chart (rotate)
+    w1.onChartReady(()=>{
+      w1.chart().setSymbol(sym);
+    });
+  });
+});
+
+// add symbol
+document.getElementById('addBtn').onclick = ()=>{
+  const v = document.getElementById('addSym').value.trim();
+  if(!v) return;
+  const d = document.createElement('div');
+  d.className='watch-item'; d.dataset.symbol=v; d.textContent = v.split(':').pop();
+  d.onclick = (e)=>{ w1.onChartReady(()=>w1.chart().setSymbol(v)); };
+  document.querySelector('.watchlist').appendChild(d);
+  document.getElementById('addSym').value='';
+};
+
+// tab switching
+document.getElementById('tabCharts').onclick = ()=>{ document.getElementById('ChartsPane').style.display='block'; document.getElementById('ToolsPane').style.display='none'; document.getElementById('tabCharts').classList.add('active'); document.getElementById('tabTools').classList.remove('active'); }
+document.getElementById('tabTools').onclick = ()=>{ document.getElementById('ChartsPane').style.display='none'; document.getElementById('ToolsPane').style.display='block'; document.getElementById('tabCharts').classList.remove('active'); document.getElementById('tabTools').classList.add('active'); }
+
+// ----- Position sizing
+document.getElementById('calc').onclick = ()=>{
+  const acct= parseFloat(document.getElementById('acct').value||0);
+  const riskPercent = parseFloat(document.getElementById('riskPercent').value||1);
+  const entry = parseFloat(document.getElementById('entry').value||0);
+  const stop = parseFloat(document.getElementById('stop').value||0);
+  if(!acct||!entry||!stop){ alert('set acct, entry and stop'); return; }
+  const riskAmt = acct * (riskPercent/100);
+  const riskPerUnit = Math.abs(entry - stop);
+  const size = riskAmt / riskPerUnit;
+  document.getElementById('posResult').textContent = ` Size ≈ ${size.toFixed(4)} units (risk $${riskAmt.toFixed(2)})`;
+};
+
+// ----- Alerts system (simple)
+const alerts = [];
+function logAlert(txt){
+  const el = document.getElementById('alertsLog');
+  const t = document.createElement('div'); t.textContent = `${new Date().toLocaleTimeString()} • ${txt}`; el.prepend(t);
+}
+document.getElementById('addAlert').onclick = ()=>{
+  const s = document.getElementById('alertSym').value.trim().toUpperCase();
+  const c = document.getElementById('cond').value;
+  if(!s) return alert('set symbol');
+  alerts.push({symbol:s,cond:c,seen:false});
+  logAlert(`Alert added: ${s} ${c}`);
+};
+
+// simple EMA function
+function ema(values, period){
+  if(values.length < period) return null;
+  const k = 2/(period+1);
+  let emaPrev = values.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  for(let i=period;i<values.length;i++){
+    emaPrev = values[i]*k + emaPrev*(1-k);
+  }
+  return emaPrev;
+}
+
+// fetch klines from Binance
+async function fetchKlines(symbol, interval='1m', limit=200){
+  try{
+    const s = symbol.replace(':','').replace('USDT','USDT');
+    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${s}&interval=${interval}&limit=${limit}`);
+    const data = await res.json();
+    // data: [ [openTime, open, high, low, close, volume, ...], ... ]
+    return data.map(d=>({ t:d[0], open:parseFloat(d[1]), high:parseFloat(d[2]), low:parseFloat(d[3]), close:parseFloat(d[4]), vol:parseFloat(d[5]) }));
+  } catch(e){ console.error(e); return []; }
+}
+
+// poll for alerts
+async function pollAlerts(){
+  if(alerts.length===0) return;
+  for(const a of alerts){
+    try{
+      const kl = await fetchKlines(a.symbol, '1m', 200);
+      if(kl.length<20) continue;
+      const closes = kl.map(x=>x.close);
+      const ema9 = ema(closes,9);
+      const price = closes[closes.length-1];
+      if(a.cond==='crossAbove' && price > ema9 && !a.seen){ notify(`${a.symbol} price ${price} > EMA9`); logAlert(`${a.symbol} > EMA9 (${price.toFixed(6)})`); a.seen=true; }
+      if(a.cond==='crossBelow' && price < ema9 && !a.seen){ notify(`${a.symbol} price ${price} < EMA9`); logAlert(`${a.symbol} < EMA9 (${price.toFixed(6)})`); a.seen=true; }
+      if(a.cond==='volumeSpike'){
+        const vols = kl.map(x=>x.vol);
+        const avgVol = vols.slice(-20,-1).reduce((s,v)=>s+v,0)/19;
+        if(vols[vols.length-1] > avgVol*3 && !a.seen){ notify(`${a.symbol} volume spike`); logAlert(`${a.symbol} vol spike`); a.seen=true; }
+      }
+    }catch(e){ console.error(e); }
+  }
+}
+
+// browser notification
+function notify(msg){
+  if(Notification && Notification.permission === "granted"){ new Notification(msg); }
+  else if(Notification && Notification.permission !== "denied"){ Notification.requestPermission().then(p=>{ if(p==="granted") new Notification(msg); }); }
+  // also log
+  logAlert('NOTIFY: '+msg);
+}
+
+// poll every 20s
+setInterval(pollAlerts,20000);
+</script>
+</body>
+</html>

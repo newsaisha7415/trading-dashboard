@@ -1,0 +1,6 @@
+body { background:#0b0f14; color:#e6f7ff; font-family:system-ui,Roboto,Arial; margin:24px; }
+.container { max-width:900px; margin:0 auto; padding:18px; background:#071019;
+border-radius:8px; border:1px solid rgba(0,200,255,0.06); }
+a { color:#6fe1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+h1 { color:#00d4ff; }
