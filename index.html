@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scalping Mastery - Interactive Trading Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="https://unpkg.com/splitting@1.0.6/dist/splitting.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link href="https://unpkg.com/splitting@1.0.6/dist/splitting.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #1a1a1a;
+            --secondary-bg: #0f1419;
+            --accent-blue: #00d4ff;
+            --success-green: #00ff88;
+            --warning-amber: #ffaa00;
+            --error-red: #ff4757;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #0f1419 0%, #1a1a1a 100%);
+            position: relative;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .glass-panel {
+            background: rgba(15, 20, 25, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .trading-card {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        
+        .trading-card:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .price-positive {
+            color: var(--success-green);
+        }
+        
+        .price-negative {
+            color: var(--error-red);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-blue);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .typewriter-cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-canvas"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">SM</span>
+                    </div>
+                    <span class="text-xl font-bold glow-text">Scalping Mastery</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-blue-400 font-medium">Dashboard</a>
+                    <a href="strategies.html" class="nav-link hover:text-blue-400 transition-colors">Strategies</a>
+                    <a href="tools.html" class="nav-link hover:text-blue-400 transition-colors">Tools</a>
+                    <a href="psychology.html" class="nav-link hover:text-blue-400 transition-colors">Psychology</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="mono-font text-sm">
+                        <span class="text-gray-400">Portfolio:</span>
+                        <span class="price-positive" id="portfolio-value">$10,000.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg min-h-screen flex items-center pt-20">
+        <div class="container mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <div class="space-y-4">
+                        <h1 class="text-5xl lg:text-7xl font-bold leading-tight">
+                            <span class="block" data-splitting>Master the Art of</span>
+                            <span class="block glow-text" id="typed-text"></span>
+                        </h1>
+                        <p class="text-xl text-gray-300 max-w-lg leading-relaxed">
+                            Transform from novice to professional scalper with our comprehensive interactive trading guide. 
+                            Learn institutional strategies, master risk management, and build consistent profitability.
+                        </p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="startTrading()" class="bg-gradient-to-r from-blue-600 to-cyan-500 px-8 py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105">
+                            Start Trading Simulator
+                        </button>
+                        <a href="strategies.html" class="border border-blue-500 px-8 py-4 rounded-lg font-semibold hover:bg-blue-500/10 transition-all duration-300 text-center">
+                            Explore Strategies
+                        </a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <img src="resources/hero-trading.jpg" alt="Professional Trading Setup" class="rounded-lg shadow-2xl w-full h-auto">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Market Ticker -->
+    <section class="py-8 bg-secondary-bg">
+        <div class="container mx-auto px-6">
+            <div class="glass-panel p-4">
+                <div class="flex items-center justify-between overflow-hidden">
+                    <div class="flex items-center space-x-8 animate-scroll">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold">NIFTY 50</span>
+                            <span class="mono-font price-positive" id="nifty-price">21,847.50</span>
+                            <span class="mono-font text-green-400 text-sm">+0.85%</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold">BANK NIFTY</span>
+                            <span class="mono-font price-positive" id="banknifty-price">48,234.80</span>
+                            <span class="mono-font text-green-400 text-sm">+1.12%</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold">BTC/USDT</span>
+                            <span class="mono-font price-negative" id="btc-price">43,567.89</span>
+                            <span class="mono-font text-red-400 text-sm">-0.45%</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold">ETH/USDT</span>
+                            <span class="mono-font price-positive" id="eth-price">2,678.45</span>
+                            <span class="mono-font text-green-400 text-sm">+2.30%</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold">S&P 500</span>
+                            <span class="mono-font price-positive" id="sp500-price">5,678.90</span>
+                            <span class="mono-font text-green-400 text-sm">+0.67%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trading Simulator -->
+    <section class="py-20" id="trading-section">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">Interactive Trading Simulator</h2>
+                <p class="text-xl text-gray-300">Practice scalping strategies with real-time market simulation</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Trading Panel -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Chart Area -->
+                    <div class="glass-panel p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Live Chart - NIFTY 50</h3>
+                            <div class="flex items-center space-x-4">
+                                <select id="timeframe-select" class="bg-secondary-bg border border-gray-600 rounded px-3 py-1 text-sm">
+                                    <option value="1m">1 Minute</option>
+                                    <option value="5m" selected>5 Minutes</option>
+                                    <option value="15m">15 Minutes</option>
+                                    <option value="1h">1 Hour</option>
+                                </select>
+                                <div class="flex space-x-2">
+                                    <button class="bg-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors" onclick="buyOrder()">BUY</button>
+                                    <button class="bg-red-600 px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors" onclick="sellOrder()">SELL</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="trading-chart" class="h-96 w-full"></div>
+                    </div>
+                    
+                    <!-- Active Positions -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-xl font-semibold mb-4">Active Positions</h3>
+                        <div id="positions-table" class="space-y-3">
+                            <div class="text-center text-gray-400 py-8">
+                                No active positions. Start trading to see your positions here.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trading Controls -->
+                <div class="space-y-6">
+                    <!-- Quick Trade -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-xl font-semibold mb-4">Quick Trade</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Quantity</label>
+                                <input type="number" id="trade-quantity" value="50" class="w-full bg-secondary-bg border border-gray-600 rounded px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Stop Loss (points)</label>
+                                <input type="number" id="stop-loss" value="10" class="w-full bg-secondary-bg border border-gray-600 rounded px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Target (points)</label>
+                                <input type="number" id="target" value="20" class="w-full bg-secondary-bg border border-gray-600 rounded px-3 py-2">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="buyOrder()" class="bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg font-semibold transition-colors">
+                                    BUY (L)
+                                </button>
+                                <button onclick="sellOrder()" class="bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg font-semibold transition-colors">
+                                    SELL (S)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Portfolio Summary -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-xl font-semibold mb-4">Portfolio Summary</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Total Value:</span>
+                                <span class="mono-font font-semibold" id="total-value">$10,000.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Today's P&L:</span>
+                                <span class="mono-font font-semibold price-positive" id="daily-pnl">+$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Total P&L:</span>
+                                <span class="mono-font font-semibold price-positive" id="total-pnl">+$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Win Rate:</span>
+                                <span class="mono-font font-semibold" id="win-rate">0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Total Trades:</span>
+                                <span class="mono-font font-semibold" id="total-trades">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Market Sentiment -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-xl font-semibold mb-4">Market Sentiment</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-400">Fear & Greed Index</span>
+                                <span class="mono-font text-yellow-400">65 - Greed</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-400">VIX</span>
+                                <span class="mono-font price-positive">14.32 -2.1%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-400">Put/Call Ratio</span>
+                                <span class="mono-font">0.85</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features -->
+    <section class="py-20 bg-secondary-bg">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">Master Scalping with Precision</h2>
+                <p class="text-xl text-gray-300">Professional-grade tools and strategies for consistent profitability</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="trading-card glass-panel p-6">
+                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">📊</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Real-Time Analysis</h3>
+                    <p class="text-gray-300 mb-4">Advanced charting with institutional-grade indicators and real-time market data simulation.</p>
+                    <a href="tools.html" class="text-blue-400 hover:text-blue-300 font-medium">Explore Tools →</a>
+                </div>
+                
+                <div class="trading-card glass-panel p-6">
+                    <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Smart Money Concepts</h3>
+                    <p class="text-gray-300 mb-4">Learn institutional trading strategies including order blocks, liquidity grabs, and market structure analysis.</p>
+                    <a href="strategies.html" class="text-blue-400 hover:text-blue-300 font-medium">Learn Strategies →</a>
+                </div>
+                
+                <div class="trading-card glass-panel p-6">
+                    <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">🧠</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Trading Psychology</h3>
+                    <p class="text-gray-300 mb-4">Master the mental game with proven techniques for discipline, risk management, and emotional control.</p>
+                    <a href="psychology.html" class="text-blue-400 hover:text-blue-300 font-medium">Master Mindset →</a>
+                </div>
+                
+                <div class="trading-card glass-panel p-6">
+                    <div class="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">🎯</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Risk Management</h3>
+                    <p class="text-gray-300 mb-4">Advanced position sizing calculators and risk assessment tools to protect your capital.</p>
+                    <a href="tools.html" class="text-blue-400 hover:text-blue-300 font-medium">Calculate Risk →</a>
+                </div>
+                
+                <div class="trading-card glass-panel p-6">
+                    <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">📈</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Market Specific</h3>
+                    <p class="text-gray-300 mb-4">Tailored strategies for Indian markets (NIFTY/BANK NIFTY), Crypto, and Global indices.</p>
+                    <a href="strategies.html" class="text-blue-400 hover:text-blue-300 font-medium">Explore Markets →</a>
+                </div>
+                
+                <div class="trading-card glass-panel p-6">
+                    <div class="w-12 h-12 bg-teal-600 rounded-lg flex items-center justify-center mb-4">
+                        <span class="text-2xl">🎓</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Interactive Learning</h3>
+                    <p class="text-gray-300 mb-4">Hands-on trading simulator with real-time feedback and performance tracking.</p>
+                    <button onclick="startTrading()" class="text-blue-400 hover:text-blue-300 font-medium">Start Learning →</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Metrics -->
+    <section class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">Track Your Progress</h2>
+                <p class="text-xl text-gray-300">Comprehensive analytics to measure and improve your trading performance</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="glass-panel p-6 text-center">
+                    <div class="text-3xl font-bold price-positive mb-2" id="accuracy-metric">0%</div>
+                    <div class="text-gray-400">Trading Accuracy</div>
+                </div>
+                <div class="glass-panel p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-400 mb-2" id="profit-factor">0.0</div>
+                    <div class="text-gray-400">Profit Factor</div>
+                </div>
+                <div class="glass-panel p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-400 mb-2" id="max-drawdown">0%</div>
+                    <div class="text-gray-400">Max Drawdown</div>
+                </div>
+                <div class="glass-panel p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-400 mb-2" id="sharpe-ratio">0.0</div>
+                    <div class="text-gray-400">Sharpe Ratio</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-secondary-bg py-12">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">SM</span>
+                </div>
+                <span class="text-xl font-bold glow-text">Scalping Mastery</span>
+            </div>
+            <p class="text-gray-400 mb-4">Professional trading education and interactive learning platform</p>
+            <p class="text-sm text-gray-500">© 2024 Scalping Mastery. Educational content for learning purposes.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
