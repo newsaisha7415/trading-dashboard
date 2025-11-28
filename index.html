@@ -5,9 +5,9 @@
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-  .then(() => console.log("SW registered"))
-  .catch(err => console.log("SW fail", err));
+  navigator.serviceWorker.register('/trading-dashboard/service-worker.js', { scope: '/trading-dashboard/' })
+    .then(() => console.log("SW registered"))
+    .catch(err => console.log("SW fail", err));
 }
 </script>
   <meta charset="utf-8" />
