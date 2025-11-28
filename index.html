@@ -1,46 +1,63 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
-
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/trading-dashboard/service-worker.js', { scope: '/trading-dashboard/' })
-    .then(() => console.log("SW registered"))
-    .catch(err => console.log("SW fail", err));
-}
-</script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scalping Mastery</title>
 
+  <!-- PWA manifest (must exist at /trading-dashboard/manifest.json) -->
+  <link rel="manifest" href="/trading-dashboard/manifest.json">
+
   <style>
-    body { margin:0; background:#070e15; font-family:Arial; color:white; }
-    .header { padding:20px; font-size:20px; background:#0b1620; display:flex; justify-content:space-between; }
-    .box { margin:40px auto; max-width:900px; padding:24px; background:#0f1a25; border-radius:12px; }
-    .btn { display:block; margin-top:20px; padding:14px 20px; 
+    body { margin:0; background:#070e15; font-family:Arial,Helvetica,sans-serif; color:white; -webkit-font-smoothing:antialiased; }
+    .header { padding:18px 22px; font-size:18px; background:#0b1620; display:flex; justify-content:space-between; align-items:center; }
+    .box { margin:30px auto; max-width:980px; padding:28px; background:#0f1a25; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.4); }
+    .btn { display:block; margin:18px 0; padding:14px 18px; 
            background:linear-gradient(90deg,#29b6ff,#0066ff); 
-           text-align:center; border-radius:10px; font-size:18px; text-decoration:none; color:white; }
+           text-align:center; border-radius:10px; font-size:18px; color:white; text-decoration:none; }
+    .btn.secondary { background:#081019; border:1px solid #1a2c3a; color:#cfe6f0; }
+    p.lead { color:#bcd3df; line-height:1.5; margin:10px 0 20px 0; }
+    .container { padding:0 14px; }
+    @media(min-width:900px){ .box{ padding:36px; } }
   </style>
+
+  <script>
+  // register service worker with correct scope for GitHub Pages folder
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/trading-dashboard/service-worker.js', { scope: '/trading-dashboard/' })
+      .then(() => console.log('SW registered OK'))
+      .catch(err => console.log('SW registration failed', err));
+  }
+  </script>
 </head>
 
 <body>
+  <div class="header">
+    <div style="font-weight:600">Scalping Mastery</div>
+    <div style="color:#00ff84;font-weight:600">Portfolio: $10,000.00</div>
+  </div>
 
-<div class="header">
-  <div>Scalping Mastery</div>
-  <div style="color:#00ff84;">Portfolio: $10,000.00</div>
-</div>
+  <div class="container">
+    <div class="box">
+      <h1 style="margin:0 0 12px 0; font-size:34px;">Master the Art of Scalping</h1>
+      <p class="lead">
+        Fast, professional trading dashboard. Learn price action, scalping setups,
+        risk management, and build consistent profitability.
+      </p>
 
-<div class="box">
-  <h1 style="margin:0 0 20px 0; font-size:36px;">Master the Art of Scalping</h1>
-  <p style="color:#bcd3df;">
-    Fast, professional trading dashboard. Learn price action, scalping setups, 
-    risk management, and build consistent profitability.
-  </p>
+      <a class="btn" href="/trading-dashboard/dashboard.html">Start Trading Simulator</a>
+      <a class="btn secondary" href="/trading-dashboard/strategies.html">Explore Strategies</a>
 
-  <a class="btn" href="dashboard.html">Start Trading Simulator</a>
-  <a class="btn" href="strategies.html" style="background:#081019; border:1px solid #1a2c3a;">Explore Strategies</a>
-</div>
-
+      <!-- Optional small footer line -->
+      <div style="margin-top:18px; font-size:13px; color:#88a;">
+        If you want the site to behave as an installable app, make sure:
+        <ul style="margin:6px 0 0 18px; padding:0; color:#99c; font-size:13px">
+          <li>manifest.json exists at <code>/trading-dashboard/manifest.json</code></li>
+          <li>service-worker.js exists at <code>/trading-dashboard/service-worker.js</code></li>
+          <li>icons referenced in manifest are present in <code>/trading-dashboard/images/</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
